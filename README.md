@@ -247,10 +247,10 @@ Add a new thing of type **SmartThings Cloud Account** (bridge), then add child t
 
 ## Airconditioner Configuration Parameters
 
-| Parameter    | Type | Required | Default  | Description |
-|--------------|------|----------|----------|-------------|
-| `deviceId`   | text | **Yes**  | —        | SmartThings device UUID.  |
-| `locationId` | text | No       | `30`     | Poll interval in seconds. |
+| Parameter                | Type    | Required | Default | Description |
+|--------------------------|---------|----------|---------|-------------|
+| `deviceId`               | text    | **Yes**  | —       | SmartThings device UUID. |
+| `pollingIntervalSeconds` | integer | No       | `30`    | Poll interval in seconds. Min: 10, Max: 300. |
 
 ---
 
@@ -388,7 +388,7 @@ Add a new thing of type **SmartThings Cloud Account** (bridge), then add child t
 | Channel ID      | Type   | Source capability                        | Description |
 |-----------------|--------|------------------------------------------|-------------|
 | `power`                  | Switch                | `switch` → `on` / `off`             | Status of the air conditioner on or off |
-| `mode`                   | Switch                | `airConditionerMode`                | Operating mode: auto, cool, dry, fan, heat |
+| `mode`                   | String                | `airConditionerMode`                | Operating mode: auto, cool, dry, fan, heat |
 | `targetTemperature`      | Number:Temperature    | `thermostatCoolingSetpoint`         | Set cooling setpoint temperature |
 | `currentTemperature`     | Number:Temperature    | `temperatureMeasurement`            | Measured room temperature |
 | `fanMode`                | String                | `airConditionerFanMode`             | Fan speed: auto, low, medium, high, turbo |
@@ -400,7 +400,7 @@ Add a new thing of type **SmartThings Cloud Account** (bridge), then add child t
 | Channel ID      | Type   | Write capability                        | Description |
 |-----------------|--------|------------------------------------------|-------------|
 | `power`                  | Switch                | `switch` → `on` / `off`             | Turn the air conditioner on or off |
-| `mode`                   | Switch                | `airConditionerMode`                | Set operating mode: auto, cool, dry, fan, heat |
+| `mode`                   | String                | `airConditionerMode`                | Set operating mode: auto, cool, dry, fan, heat |
 | `targetTemperature`      | Number:Temperature    | `thermostatCoolingSetpoint`         | Set cooling setpoint temperature |
 | `fanMode`                | String                | `airConditionerFanMode`             | Set fan speed: auto, low, medium, high, turbo |
 | `fanOscillationMode`     | String                | `fanOscillationMode`                | Set fan swing/oscillation direction: fixed, vertical, horizontal, all, fixedCenter, fixedLeft, fixedRight |
@@ -503,6 +503,16 @@ Group           gLightSensor             "Bedroom Light Sensor"
 Number          LS_Illuminance           "Illuminance [%.0f lx]"       (gLightSensor) { channel="smartthingscloud:lightSensor:myaccount:mysensor:illuminance" }
 Number          LS_BrightnessLevel       "Brightness Level [%.0f]"     (gLightSensor) { channel="smartthingscloud:lightSensor:myaccount:mysensor:brightnessLevel" }
 
+// ── Air Conditioner ─────────────────────────────────────────────────────────
+Group              gAircon               "Air Conditioner"
+Switch             AC_Power              "Power"                       (gAircon) { channel="smartthingscloud:airConditioner:myaccount:myairconditioner:power" }
+String             AC_Mode               "Mode [%s]"                   (gAircon) { channel="smartthingscloud:airConditioner:myaccount:myairconditioner:mode" }
+Number:Temperature AC_TargetTemp         "Setpoint [%.1f °C]"          (gAircon) { channel="smartthingscloud:airConditioner:myaccount:myairconditioner:targetTemperature" }
+Number:Temperature AC_CurrentTemp        "Room [%.1f °C]"              (gAircon) { channel="smartthingscloud:airConditioner:myaccount:myairconditioner:currentTemperature" }
+String             AC_FanMode            "Fan [%s]"                    (gAircon) { channel="smartthingscloud:airConditioner:myaccount:myairconditioner:fanMode" }
+String             AC_FanOscillation     "Swing [%s]"                  (gAircon) { channel="smartthingscloud:airConditioner:myaccount:myairconditioner:fanOscillationMode" }
+String             AC_OptionalMode       "Optional [%s]"               (gAircon) { channel="smartthingscloud:airConditioner:myaccount:myairconditioner:optionalMode" }
+
 // ── Scenes ──────────────────────────────────────────────────────────────────
 Switch          Scene_Filmscene          "Filmscene"                   { channel="smartthingscloud:scene:myaccount:filmscene:trigger" }
 ```
@@ -530,10 +540,19 @@ sitemap smartthings label="SmartThings" {
         Switch item=TV_Power
         Slider item=TV_Volume             minValue=0 maxValue=100 step=1
         Switch item=TV_Mute               mappings=[ON="Muted", OFF="Sound"]
-        Text   item=TV_Input              label="Input [%s]"
+        Text   item=TV_InputSource        label="Input [%s]"
         Text   item=TV_PictureMode        label="Picture [%s]"
         Text   item=TV_SoundMode          label="Sound [%s]"
-        Text   item=TV_AppId              label="App [%s]"
+        Switch item=TV_ChannelUp          mappings=[ON="▲"]
+        Switch item=TV_ChannelDown        mappings=[ON="▼"]
+    }
+
+    Frame label="Air Conditioner" {
+        Switch item=AC_Power
+        Selection item=AC_Mode            mappings=["auto"="Auto", "cool"="Cool", "dry"="Dry", "fan"="Fan", "heat"="Heat"]
+        Setpoint  item=AC_TargetTemp      minValue=16 maxValue=30 step=1
+        Text      item=AC_CurrentTemp     label="Room [%.1f °C]"
+        Selection item=AC_FanMode         mappings=["auto"="Auto", "low"="Low", "medium"="Medium", "high"="High", "turbo"="Turbo"]
     }
 
     Frame label="Presence" {
@@ -687,6 +706,37 @@ Contributions via pull request are welcome.
 ---
 
 ## Changelog
+
+### v1.6.0 (2026-08-08)
+
+**New thing type — air conditioner** (contributed by [@phiba2](https://github.com/phiba2), PR #5)
+
+- `airConditioner` thing: Samsung SmartThings air conditioner support — 7 channels:
+  - `power` (Switch, control) — on/off via `switch`
+  - `mode` (String, control) — `auto`, `cool`, `dry`, `fan`, `heat` via `airConditionerMode`
+  - `targetTemperature` (Number:Temperature, control) — cooling setpoint via `thermostatCoolingSetpoint`
+  - `currentTemperature` (Number:Temperature, read-only) — measured room temperature
+  - `fanMode` (String, control) — `auto`, `low`, `medium`, `high`, `turbo` via `airConditionerFanMode`
+  - `fanOscillationMode` (String, control) — swing direction via `fanOscillationMode`
+  - `optionalMode` (String, control) — Samsung-specific mode (e.g. `windFree`, `sleep`) via `custom.airConditionerOptionalMode`
+
+---
+
+### v1.5.0 (2026-05-02)
+
+**New thing type — scene**
+
+- `scene` thing: execute any SmartThings scene via a `trigger` Switch channel (auto-resets to `OFF` after firing). Config: `sceneId` (required), `locationId` (optional, for multi-location accounts).
+
+**Security**
+
+- Removed private redirect domain and hardcoded client secret from bridge defaults — the binding now ships only the public open-source SmartThings CLI client ID.
+
+**Documentation**
+
+- Scene example uses placeholder values.
+
+---
 
 ### v1.4.0 (2026-05-01)
 
