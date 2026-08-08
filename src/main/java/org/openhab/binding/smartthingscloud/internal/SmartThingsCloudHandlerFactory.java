@@ -10,6 +10,7 @@ import static org.openhab.binding.smartthingscloud.SmartThingsCloudBindingConsta
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.smartthingscloud.internal.handler.SmartThingsCloudAccountHandler;
+import org.openhab.binding.smartthingscloud.internal.handler.SmartThingsCloudAirConditionerHandler;
 import org.openhab.binding.smartthingscloud.internal.handler.SmartThingsCloudLightSensorHandler;
 import org.openhab.binding.smartthingscloud.internal.handler.SmartThingsCloudPresenceHandler;
 import org.openhab.binding.smartthingscloud.internal.handler.SmartThingsCloudSceneHandler;
@@ -72,6 +73,9 @@ public class SmartThingsCloudHandlerFactory extends BaseThingHandlerFactory {
         }
         if (THING_TYPE_SCENE.equals(uid)) {
             return new SmartThingsCloudSceneHandler(thing);
+        }
+        if (THING_TYPE_AIR_CONDITIONER.equals(uid)) {
+            return new SmartThingsCloudAirConditionerHandler(thing);
         }
         return null;
     }

@@ -34,9 +34,11 @@ public class SmartThingsCloudBindingConstants {
     public static final ThingTypeUID THING_TYPE_PRESENCE = new ThingTypeUID(BINDING_ID, "presence");
     public static final ThingTypeUID THING_TYPE_LIGHT_SENSOR = new ThingTypeUID(BINDING_ID, "lightSensor");
     public static final ThingTypeUID THING_TYPE_SCENE = new ThingTypeUID(BINDING_ID, "scene");
+    public static final ThingTypeUID THING_TYPE_AIR_CONDITIONER = new ThingTypeUID(BINDING_ID, "airConditioner");
 
     public static final Set<ThingTypeUID> SUPPORTED_THING_TYPES = Set.of(THING_TYPE_ACCOUNT, THING_TYPE_WASHER,
-            THING_TYPE_TELEVISION, THING_TYPE_PRESENCE, THING_TYPE_LIGHT_SENSOR, THING_TYPE_SCENE);
+            THING_TYPE_TELEVISION, THING_TYPE_PRESENCE, THING_TYPE_LIGHT_SENSOR, THING_TYPE_SCENE,
+            THING_TYPE_AIR_CONDITIONER);
 
     // ── SmartThings API ───────────────────────────────────────────────────────
     /** Default public client_id from the open-source SmartThings CLI. */
@@ -106,6 +108,15 @@ public class SmartThingsCloudBindingConstants {
     // ── Scene Channels ────────────────────────────────────────────────────────
     /** Switch channel — send ON to execute the scene; auto-resets to OFF. */
     public static final String CHANNEL_SCENE_TRIGGER = "trigger";
+
+    // ── Air Conditioner Channels ──────────────────────────────────────────────
+    public static final String CHANNEL_AC_POWER = "power";
+    public static final String CHANNEL_AC_MODE = "mode";
+    public static final String CHANNEL_AC_TARGET_TEMPERATURE = "targetTemperature";
+    public static final String CHANNEL_AC_CURRENT_TEMPERATURE = "currentTemperature";
+    public static final String CHANNEL_AC_FAN_MODE = "fanMode";
+    public static final String CHANNEL_AC_FAN_OSCILLATION_MODE = "fanOscillationMode";
+    public static final String CHANNEL_AC_OPTIONAL_MODE = "optionalMode";
 
     // ── Storage keys ─────────────────────────────────────────────────────────
     public static final String STORAGE_ACCESS_TOKEN = "accessToken";
