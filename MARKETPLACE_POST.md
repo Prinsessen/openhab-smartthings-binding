@@ -4,7 +4,7 @@
 | type | binding |
 | author | Nanna Agesen |
 | version range | \[5.0.0;6.0.0) |
-| download | [org.openhab.binding.smartthingscloud-5.2.0-SNAPSHOT.jar](https://github.com/Prinsessen/openhab-smartthings-binding/releases/download/v1.5.0/org.openhab.binding.smartthingscloud-5.2.0-SNAPSHOT.jar) |
+| download | [org.openhab.binding.smartthingscloud-1.6.0.jar](https://github.com/Prinsessen/openhab-smartthings-binding/releases/download/v1.6.0/org.openhab.binding.smartthingscloud-1.6.0.jar) |
 
 # Samsung SmartThings Cloud Binding
 
@@ -26,6 +26,7 @@ Authorization uses **OAuth2 PKCE** (the same flow as the official SmartThings CL
 | `presence` | SmartThings phone / presence sensor |
 | `lightSensor` | SmartThings illuminance sensor |
 | `scene` | SmartThings scene — trigger a scene with a Switch |
+| `airConditioner` | Samsung air conditioner — power, mode, temperature, fan |
 ---
 
 ## Channels
@@ -135,6 +136,25 @@ Authorization uses **OAuth2 PKCE** (the same flow as the official SmartThings CL
 | `brightnessLevel` | Dimmer | Brightness 0–100 % (maps lux to %) |
 
 ---
+
+### Air Conditioner — Control (read/write)
+
+| Channel | Type | Description |
+|----|----|----|
+| `power` | Switch | Turn the air conditioner on/off |
+| `mode` | String | Operating mode: `auto`, `cool`, `dry`, `fan`, `heat` (device-dependent) |
+| `targetTemperature` | Number:Temperature | Cooling setpoint (16–30 °C) |
+| `fanMode` | String | Fan speed: `auto`, `low`, `medium`, `high`, `turbo` (device-dependent) |
+| `fanOscillationMode` | String | Swing direction: `fixed`, `vertical`, `horizontal`, `all` (device-dependent) |
+| `optionalMode` | String | Samsung-specific mode, e.g. `windFree`, `sleep`, `speed` (device-dependent) |
+
+### Air Conditioner — State (read-only)
+
+| Channel | Type | Description |
+|----|----|----|
+| `currentTemperature` | Number:Temperature | Measured room temperature |
+
+---
 ### Scene — Control (write-only)
 
 | Channel | Type | Description |
@@ -233,11 +253,12 @@ This is a **beta release**. The following thing types are currently implemented:
 - ✅ `presence` — SmartThings phone / arrival sensor
 - ✅ `lightSensor` — illuminance (lux) + brightness level
 - ✅ `scene` — execute any SmartThings scene via a Switch channel
+- ✅ `airConditioner` — power, mode, target/current temperature, fan mode/oscillation (contributed by [@phiba2](https://github.com/phiba2))
 
 Still planned:
 - Dryer
 - Dishwasher
-- Air purifier / air conditioner
+- Air purifier
 - Fridge / freezer
 
 **If you own one of these and want openHAB support, I'd love to hear from you.** Open an issue on GitHub describing your device and I'm happy to work with you to implement it — you don't need Java experience, just the ability to test on your own device.
@@ -246,10 +267,10 @@ Still planned:
 
 ## Resources
 
-* **Download JAR:** [org.openhab.binding.smartthingscloud-5.2.0-SNAPSHOT.jar](https://github.com/Prinsessen/openhab-smartthings-binding/releases/download/v1.5.0/org.openhab.binding.smartthingscloud-5.2.0-SNAPSHOT.jar)
+* **Download JAR:** [org.openhab.binding.smartthingscloud-1.6.0.jar](https://github.com/Prinsessen/openhab-smartthings-binding/releases/download/v1.6.0/org.openhab.binding.smartthingscloud-1.6.0.jar)
 * **Source Code:** [github.com/Prinsessen/openhab-smartthings-binding](https://github.com/Prinsessen/openhab-smartthings-binding)
 * **Full Documentation:** [README.md](https://github.com/Prinsessen/openhab-smartthings-binding/blob/main/README.md)
-* **Release:** [v1.5.0 — Scene Support](https://github.com/Prinsessen/openhab-smartthings-binding/releases/tag/v1.5.0)
+* **Release:** [v1.6.0 — Air Conditioner Support](https://github.com/Prinsessen/openhab-smartthings-binding/releases/tag/v1.6.0)
 * **License:** EPL-2.0
 
 ---
