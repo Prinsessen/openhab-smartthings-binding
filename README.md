@@ -22,6 +22,30 @@ Any Samsung account holder can authorize using the built-in client ID without re
 
 ---
 
+## Installation & Upgrading
+
+This binding is distributed as a single JAR that you drop into openHAB's `addons/` folder.
+
+**Installing:** copy `org.openhab.binding.smartthingscloud-*.jar` into `<OPENHAB_CONF>/addons/`.
+openHAB hot-loads it automatically.
+
+**Upgrading (important):** always **remove the previous JAR first**. Never keep two versions
+of the binding in `addons/` at the same time — both share the same bundle symbolic name
+(`org.openhab.binding.smartthingscloud`), and two copies create an OSGi conflict where the
+binding appears installed but **no thing types register** (the "No thing types can be added
+with this binding" message). To upgrade cleanly:
+
+1. Delete the old `org.openhab.binding.smartthingscloud-*.jar` from `addons/`.
+2. Copy in the new JAR (only one must be present).
+3. If thing types still do not appear, clear the cache and restart:
+   `openhab-cli stop && openhab-cli clean-cache && openhab-cli start`.
+
+You can verify a healthy install in the Karaf console (`openhab-cli console`):
+`bundle:list -s | grep -i smartthings` — there must be exactly **one** entry and its state
+must be **Active**. If it is not, `bundle:diag <id>` shows what is missing.
+
+---
+
 ## Authorization
 
 The binding uses **OAuth2 PKCE** (Proof Key for Code Exchange).
