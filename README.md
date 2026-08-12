@@ -16,8 +16,9 @@ Any Samsung account holder can authorize using the built-in client ID without re
 | `lightSensor`    | Samsung SmartThings illuminance / brightness sensor |
 | `scene`          | Samsung SmartThings scene — execute with a switch channel |
 | `airConditioner` | Samsung SmartThings airconditioner |
+| `dryer`          | Samsung tumble dryer |
 
-> Additional device types (dryer, dishwasher, etc.) can be added by contributing channel mappings.
+> Additional device types (dishwasher, etc.) can be added by contributing channel mappings.
 
 ---
 
@@ -181,6 +182,10 @@ Bridge smartthingscloud:account:myaccount "Samsung SmartThings" {
         deviceId = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
         pollingIntervalSeconds = 60
     ]
+    Thing dryer mydryer "My Tumble Dryer" [
+        deviceId = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+        pollingIntervalSeconds = 30
+    ]
 }
 ```
 
@@ -254,6 +259,15 @@ Add a new thing of type **SmartThings Cloud Account** (bridge), then add child t
 
 ---
 
+## Dryer Configuration Parameters
+
+| Parameter                | Type    | Required | Default | Description |
+|--------------------------|---------|----------|---------|-------------|
+| `deviceId`               | text    | **Yes**  | —       | SmartThings device UUID. See [Finding Your Device ID](#finding-your-device-id). |
+| `pollingIntervalSeconds` | integer | No       | `30`    | Poll interval in seconds. Min: 10, Max: 300. |
+
+---
+
 ## Washer Channels
 
 ### State channels (read-only)
@@ -299,6 +313,57 @@ Add a new thing of type **SmartThings Cloud Account** (bridge), then add child t
 > **Note on capability namespaces:** Samsung reports state through `samsungce.*` capabilities (read-only).
 > Write commands must target the standard `washerOperatingState` capability — not `samsungce.washerOperatingState`.
 > This is a quirk of the Samsung SmartThings API.
+
+---
+
+## Dryer Channels
+
+Confirmed against a live Samsung DV5000T status dump. The dryer handler mirrors the washer
+architecture — Samsung reports state through `samsungce.*` capabilities, while write commands
+target the standard (non-`samsungce`) capability.
+
+### State channels (read-only)
+
+| Channel ID          | Type          | Source capability (read)                                  | Description |
+|---------------------|---------------|-----------------------------------------------------------|-------------|
+| `machineState`      | String        | `dryerOperatingState.machineState`                        | Machine state: `run`, `pause`, `stop` |
+| `jobState`          | String        | `dryerOperatingState.dryerJobState`                       | Cycle phase: `drying`, `cooling`, `finished`, `none` |
+| `completionTime`    | DateTime      | `dryerOperatingState.completionTime`                      | Expected finish time (falls back to `remaining`-derived) |
+| `running`           | Switch        | derived from `jobState`                                   | `ON` when actively running (jobState not `none`/`finish`/`stopped`) |
+| `operatingState`    | String        | `samsungce.dryerOperatingState.operatingState`            | Detailed operating state: `ready`, `running`, `paused` |
+| `remaining`         | Number        | `samsungce.dryerOperatingState.remainingTime`             | Minutes remaining |
+| `remainingTimeStr`  | String        | `samsungce.dryerOperatingState.remainingTimeStr`          | Remaining time formatted as `HH:MM` |
+| `progress`          | Number        | `samsungce.dryerOperatingState.progress`                  | Dry cycle progress (0–100 %) — only populated while running |
+| `remoteEnabled`     | Switch        | `remoteControlStatus.remoteControlEnabled`                | `ON` when remote control is allowed |
+| `watt`              | Number:Power  | `powerConsumptionReport.powerConsumption.power`           | Current power consumption (W) |
+| `kwh`               | Number:Energy | `powerConsumptionReport.powerConsumption.energy`          | Accumulated energy usage (kWh, converted from Wh) |
+| `mode`              | String        | `custom.supportedOptions.course`                          | Active dry program code |
+| `supportedCourses`  | String        | `custom.supportedOptions.supportedCourses`                | Comma-separated list of supported dry programs |
+| `currentCycle`      | String        | `samsungce.dryerCycle.dryerCycle`                         | Active program code (e.g. `Table_03_Course_16` → `16`) — use MAP transform for display |
+| `dryLevel`          | String        | `custom.dryerDryLevel.dryerDryLevel`                      | Selected dry level |
+| `dryingTemperature` | String        | `samsungce.dryerDryingTemperature.dryingTemperature`      | Drying temperature (may be disabled on some models) |
+| `dryingTime`        | String        | `samsungce.dryerDryingTime.dryingTime`                    | Drying time (minutes) |
+| `wrinklePrevent`    | Switch        | `custom.dryerWrinklePrevent.dryerWrinklePrevent`          | `ON` when wrinkle prevent is active |
+| `kidsLock`          | Switch        | `samsungce.kidsLock.lockState`                            | `ON` when child lock is active (locked) |
+| `delayEnd`          | Number        | `samsungce.dryerDelayEnd.remainingTime`                   | Delay-end countdown remaining (minutes) |
+| `updateAvailable`   | Switch        | `samsungce.softwareUpdate.newVersionAvailable`            | `ON` when a firmware update is available |
+
+### Control channels (read/write)
+
+| Channel ID          | Type   | Write capability                                             | Description |
+|---------------------|--------|-------------------------------------------------------------|-------------|
+| `machineState`      | String | `dryerOperatingState` → `setMachineState`                   | Send `run`, `pause`, or `stop` |
+| `power`             | Switch | `switch` → `on` / `off`                                     | Remote power on/off |
+| `mode`              | String | `samsungce.dryerCycle` → `setDryerCycle`                    | Set dry program code |
+| `dryLevel`          | String | `custom.dryerDryLevel` → `setDryerDryLevel`                 | Set dry level |
+| `dryingTemperature` | String | `samsungce.dryerDryingTemperature` → `setDryerDryingTemperature` | Set drying temperature |
+| `dryingTime`        | String | `samsungce.dryerDryingTime` → `setDryerDryingTime`         | Set drying time (minutes) |
+| `wrinklePrevent`    | Switch | `custom.dryerWrinklePrevent` → `setDryerWrinklePrevent`    | Enable/disable wrinkle prevent |
+
+> **Note on capability namespaces:** As with the washer, `machineState` is *read* from
+> `samsungce`/standard capabilities but *written* via the standard `dryerOperatingState`
+> capability. Program/settings writes (`setDryerCycle`, `setDryerDryLevel`, etc.) target the
+> `samsungce.*` / `custom.*` capability that owns each attribute.
 
 ---
 
