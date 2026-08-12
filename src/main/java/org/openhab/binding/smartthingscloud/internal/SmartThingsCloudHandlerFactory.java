@@ -11,6 +11,7 @@ import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.smartthingscloud.internal.handler.SmartThingsCloudAccountHandler;
 import org.openhab.binding.smartthingscloud.internal.handler.SmartThingsCloudAirConditionerHandler;
+import org.openhab.binding.smartthingscloud.internal.handler.SmartThingsCloudDryerHandler;
 import org.openhab.binding.smartthingscloud.internal.handler.SmartThingsCloudLightSensorHandler;
 import org.openhab.binding.smartthingscloud.internal.handler.SmartThingsCloudPresenceHandler;
 import org.openhab.binding.smartthingscloud.internal.handler.SmartThingsCloudSceneHandler;
@@ -61,6 +62,9 @@ public class SmartThingsCloudHandlerFactory extends BaseThingHandlerFactory {
         }
         if (THING_TYPE_WASHER.equals(uid)) {
             return new SmartThingsCloudWasherHandler(thing);
+        }
+        if (THING_TYPE_DRYER.equals(uid)) {
+            return new SmartThingsCloudDryerHandler(thing);
         }
         if (THING_TYPE_TELEVISION.equals(uid)) {
             return new SmartThingsCloudTelevisionHandler(thing);

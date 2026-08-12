@@ -30,6 +30,7 @@ public class SmartThingsCloudBindingConstants {
     // ── Thing Types ───────────────────────────────────────────────────────────
     public static final ThingTypeUID THING_TYPE_ACCOUNT = new ThingTypeUID(BINDING_ID, "account");
     public static final ThingTypeUID THING_TYPE_WASHER = new ThingTypeUID(BINDING_ID, "washer");
+    public static final ThingTypeUID THING_TYPE_DRYER = new ThingTypeUID(BINDING_ID, "dryer");
     public static final ThingTypeUID THING_TYPE_TELEVISION = new ThingTypeUID(BINDING_ID, "television");
     public static final ThingTypeUID THING_TYPE_PRESENCE = new ThingTypeUID(BINDING_ID, "presence");
     public static final ThingTypeUID THING_TYPE_LIGHT_SENSOR = new ThingTypeUID(BINDING_ID, "lightSensor");
@@ -37,7 +38,7 @@ public class SmartThingsCloudBindingConstants {
     public static final ThingTypeUID THING_TYPE_AIR_CONDITIONER = new ThingTypeUID(BINDING_ID, "airConditioner");
 
     public static final Set<ThingTypeUID> SUPPORTED_THING_TYPES = Set.of(THING_TYPE_ACCOUNT, THING_TYPE_WASHER,
-            THING_TYPE_TELEVISION, THING_TYPE_PRESENCE, THING_TYPE_LIGHT_SENSOR, THING_TYPE_SCENE,
+            THING_TYPE_DRYER, THING_TYPE_TELEVISION, THING_TYPE_PRESENCE, THING_TYPE_LIGHT_SENSOR, THING_TYPE_SCENE,
             THING_TYPE_AIR_CONDITIONER);
 
     // ── SmartThings API ───────────────────────────────────────────────────────
@@ -80,6 +81,15 @@ public class SmartThingsCloudBindingConstants {
     public static final String CHANNEL_REMAINING_TIME_STR = "remainingTimeStr";
     public static final String CHANNEL_OPERATION_TIME = "operationTime";
     public static final String CHANNEL_UPDATE_AVAILABLE = "updateAvailable";
+
+    // ── Dryer Channels (dryer-specific; shares the washer channel constants above
+    //    for machineState/jobState/completionTime/running/remaining/power/watt/kwh/
+    //    mode/remoteEnabled/kidsLock/currentCycle/operatingState/progress/delayEnd/
+    //    supportedCourses/remainingTimeStr/updateAvailable) ──────────────────────
+    public static final String CHANNEL_DRY_LEVEL = "dryLevel";
+    public static final String CHANNEL_DRYING_TEMPERATURE = "dryingTemperature";
+    public static final String CHANNEL_DRYING_TIME = "dryingTime";
+    public static final String CHANNEL_WRINKLE_PREVENT = "wrinklePrevent";
 
     // ── Television Channels ────────────────────────────────────────────────────
     public static final String CHANNEL_TV_VOLUME = "tvVolume";

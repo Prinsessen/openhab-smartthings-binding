@@ -119,6 +119,66 @@
 		</config-description>
 	</thing-type>
 
+	<thing-type id="dryer">
+		<supported-bridge-type-refs>
+			<bridge-type-ref id="account"/>
+		</supported-bridge-type-refs>
+
+		<label>SmartThings Tumble Dryer</label>
+		<description>A Samsung tumble dryer connected via SmartThings Cloud.
+			Provides real-time state, program info, energy
+			monitoring and remote control.</description>
+
+		<channels>
+			<!-- Operating state -->
+			<channel id="machineState" typeId="machine-state"/>
+			<channel id="jobState" typeId="dryer-job-state"/>
+			<channel id="completionTime" typeId="completion-time"/>
+			<channel id="running" typeId="running"/>
+			<channel id="remaining" typeId="remaining"/>
+
+			<!-- Power and remote -->
+			<channel id="power" typeId="power"/>
+			<channel id="remoteEnabled" typeId="remote-enabled"/>
+
+			<!-- Program settings -->
+			<channel id="mode" typeId="dryer-mode"/>
+			<channel id="dryLevel" typeId="dry-level"/>
+			<channel id="dryingTemperature" typeId="drying-temperature"/>
+			<channel id="dryingTime" typeId="drying-time"/>
+			<channel id="wrinklePrevent" typeId="wrinkle-prevent"/>
+
+			<!-- Energy monitoring -->
+			<channel id="watt" typeId="watt"/>
+			<channel id="kwh" typeId="kwh"/>
+
+			<!-- Extended monitoring -->
+			<channel id="kidsLock" typeId="kids-lock"/>
+			<channel id="currentCycle" typeId="current-cycle"/>
+			<channel id="operatingState" typeId="operating-state"/>
+			<channel id="progress" typeId="progress"/>
+			<channel id="delayEnd" typeId="delay-end"/>
+			<channel id="supportedCourses" typeId="supported-courses"/>
+			<channel id="remainingTimeStr" typeId="remaining-time-str"/>
+			<channel id="updateAvailable" typeId="update-available"/>
+		</channels>
+
+		<config-description>
+			<parameter name="deviceId" type="text" required="true">
+				<label>Device ID</label>
+				<description>SmartThings device UUID. Find it via GET https://api.smartthings.com/v1/devices
+					using your access
+					token,
+					or from the SmartThings app device details.</description>
+			</parameter>
+			<parameter name="pollingIntervalSeconds" type="integer" required="false" min="10" max="300">
+				<label>Polling Interval (seconds)</label>
+				<description>How often to poll SmartThings API for dryer status.</description>
+				<default>30</default>
+			</parameter>
+		</config-description>
+	</thing-type>
+
 	<!-- ═══════════════════════════════════════════════════════════════════════
 		Channel Types
 		═══════════════════════════════════════════════════════════════════════ -->
@@ -183,6 +243,52 @@
 		<label>Wash Program</label>
 		<description>Active wash course/program (normal, heavy, delicates, permanentPress, etc.). Send the Samsung courseCode
 			(e.g. 1B, 7F) to change program.</description>
+		<state readOnly="false"/>
+	</channel-type>
+
+	<channel-type id="dryer-job-state">
+		<item-type>String</item-type>
+		<label>Job State</label>
+		<description>Current dry cycle phase: drying, cooling, finished, none, weightSensing, wrinklePrevent, dampDryBeep,
+			refreshing, wrinklePrevent, aIDrying, sanitizing</description>
+		<state readOnly="true"/>
+	</channel-type>
+
+	<channel-type id="dryer-mode">
+		<item-type>String</item-type>
+		<label>Dry Program</label>
+		<description>Active dry course/program (normal, quickDry, mix, timeDry, etc.). Send the Samsung courseCode
+			(e.g. 16, 1F) to change program.</description>
+		<state readOnly="false"/>
+	</channel-type>
+
+	<channel-type id="dry-level">
+		<item-type>String</item-type>
+		<label>Dry Level</label>
+		<description>Target dryness level (none, 1, 2, 3). Send to change the dry level.</description>
+		<state readOnly="false"/>
+	</channel-type>
+
+	<channel-type id="drying-temperature">
+		<item-type>String</item-type>
+		<label>Drying Temperature</label>
+		<description>Drying temperature setting (e.g. none, low, mediumLow, medium, high). May be disabled on some
+			models.</description>
+		<state readOnly="false"/>
+	</channel-type>
+
+	<channel-type id="drying-time">
+		<item-type>String</item-type>
+		<label>Drying Time</label>
+		<description>Time-dry duration in minutes as string (e.g. 30, 60, 90). Only relevant for time-based courses. Send
+			to change the drying time.</description>
+		<state readOnly="false"/>
+	</channel-type>
+
+	<channel-type id="wrinkle-prevent">
+		<item-type>Switch</item-type>
+		<label>Wrinkle Prevent</label>
+		<description>ON enables the anti-wrinkle tumble after the cycle ends.</description>
 		<state readOnly="false"/>
 	</channel-type>
 
