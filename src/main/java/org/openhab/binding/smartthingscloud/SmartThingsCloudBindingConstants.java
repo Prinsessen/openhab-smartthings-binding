@@ -91,6 +91,13 @@ public class SmartThingsCloudBindingConstants {
     public static final String CHANNEL_DRYING_TIME = "dryingTime";
     public static final String CHANNEL_WRINKLE_PREVENT = "wrinklePrevent";
 
+    // Combo washer/dryer channels on the washer thing (populated when the capabilities exist)
+    public static final String CHANNEL_CYCLE_TYPE = "cycleType";
+    public static final String CHANNEL_SCHEDULED_PHASES = "scheduledPhases";
+    public static final String CHANNEL_WASHING_PROGRESS = "washingProgress";
+    public static final String CHANNEL_DRYING_PROGRESS = "dryingProgress";
+    public static final String CHANNEL_JOB_PHASE = "jobPhase";
+
     // ── Television Channels ────────────────────────────────────────────────────
     public static final String CHANNEL_TV_VOLUME = "tvVolume";
     public static final String CHANNEL_TV_MUTE = "tvMute";

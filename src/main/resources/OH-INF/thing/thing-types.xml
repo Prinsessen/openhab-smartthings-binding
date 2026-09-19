@@ -101,6 +101,15 @@
 			<channel id="remainingTimeStr" typeId="remaining-time-str"/>
 			<channel id="operationTime" typeId="operation-time"/>
 			<channel id="updateAvailable" typeId="update-available"/>
+
+			<!-- Combo washer/dryer (all-in-one) — stay undefined on a plain washer -->
+			<channel id="cycleType" typeId="washer-cycle-type"/>
+			<channel id="jobPhase" typeId="washer-job-phase"/>
+			<channel id="scheduledPhases" typeId="washer-scheduled-phases"/>
+			<channel id="washingProgress" typeId="phase-progress"/>
+			<channel id="dryingProgress" typeId="phase-progress"/>
+			<channel id="dryLevel" typeId="dry-level"/>
+			<channel id="dryingTime" typeId="drying-time"/>
 		</channels>
 
 		<config-description>
@@ -265,7 +274,7 @@
 	<channel-type id="dry-level">
 		<item-type>String</item-type>
 		<label>Dry Level</label>
-		<description>Target dryness level (none, 1, 2, 3). Send to change the dry level.</description>
+		<description>Target dryness level (none, 1, 2, 3). Send to change the dry level. On a combo washer/dryer this is the drying time: none, cupboard, or minutes (30, 60, 90, 120, 180, 240).</description>
 		<state readOnly="false"/>
 	</channel-type>
 
@@ -808,4 +817,41 @@
 		<description>Samsung-specific optional mode, e.g. windFree, sleep, speed (device-dependent)</description>
 		<state readOnly="false"/>
 	</channel-type>
+	<!-- ═══ Combo washer/dryer channel types (washer thing) ═══ -->
+
+	<channel-type id="washer-cycle-type">
+		<item-type>String</item-type>
+		<label>Cycle Type</label>
+		<description>What the selected cycle does on an all-in-one machine: allInOne, washingOnly, dryingOnly
+			(samsungce.washerCycle.cycleType)</description>
+		<state readOnly="true">
+			<options>
+				<option value="allInOne">Wash and dry</option>
+				<option value="washingOnly">Wash only</option>
+				<option value="dryingOnly">Dry only</option>
+			</options>
+		</state>
+	</channel-type>
+
+	<channel-type id="washer-job-phase">
+		<item-type>String</item-type>
+		<label>Job Phase</label>
+		<description>Samsung's finer phase word (samsungce.washerOperatingState.washerJobPhase)</description>
+		<state readOnly="true"/>
+	</channel-type>
+
+	<channel-type id="washer-scheduled-phases">
+		<item-type>String</item-type>
+		<label>Planned Phases</label>
+		<description>The phases of the selected cycle with their planned minutes, e.g. "washing 45m, drying 115m"</description>
+		<state readOnly="true"/>
+	</channel-type>
+
+	<channel-type id="phase-progress">
+		<item-type>Number</item-type>
+		<label>Phase Progress</label>
+		<description>Progress of the washing or drying part of a combo cycle, percent</description>
+		<state readOnly="true" pattern="%.0f %%"/>
+	</channel-type>
+
 </thing:thing-descriptions>

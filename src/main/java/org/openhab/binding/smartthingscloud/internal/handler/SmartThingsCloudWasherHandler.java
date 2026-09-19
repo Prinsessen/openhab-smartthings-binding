@@ -87,6 +87,9 @@ public class SmartThingsCloudWasherHandler extends BaseThingHandler {
     private static final String CMD_BUBBLE_OFF = "{\"commands\":[{\"component\":\"main\",\"capability\":\"samsungce.washerBubbleSoak\",\"command\":\"off\",\"arguments\":[]}]}";
     private static final String CMD_VOLUME_FMT = "{\"commands\":[{\"component\":\"main\",\"capability\":\"samsungce.audioVolumeLevel\",\"command\":\"setVolumeLevel\",\"arguments\":[%d]}]}";
     private static final String CMD_EXTRA_CARE_FMT = "{\"commands\":[{\"component\":\"main\",\"capability\":\"samsungce.clothingExtraCare\",\"command\":\"setOperationMode\",\"arguments\":[\"%s\"]}]}";
+    // Combo washer/dryer: drying settings live in the dryer capabilities on the same main component
+    private static final String CMD_DRY_LEVEL_FMT = "{\"commands\":[{\"component\":\"main\",\"capability\":\"custom.dryerDryLevel\",\"command\":\"setDryerDryLevel\",\"arguments\":[\"%s\"]}]}";
+    private static final String CMD_DRY_TIME_FMT = "{\"commands\":[{\"component\":\"main\",\"capability\":\"samsungce.dryerDryingTime\",\"command\":\"setDryerDryingTime\",\"arguments\":[\"%s\"]}]}";
     private static final String CMD_EXTRA_CARE_LOC_FMT = "{\"commands\":[{\"component\":\"main\",\"capability\":\"samsungce.clothingExtraCare\",\"command\":\"setUserLocation\",\"arguments\":[\"%s\"]}]}";
 
     private final Logger logger = LoggerFactory.getLogger(SmartThingsCloudWasherHandler.class);
@@ -184,6 +187,12 @@ public class SmartThingsCloudWasherHandler extends BaseThingHandler {
 
         } else if (CHANNEL_EXTRA_CARE_LOCATION.equals(channelId)) {
             client.sendCommand(deviceId, String.format(CMD_EXTRA_CARE_LOC_FMT, command.toString()));
+
+        } else if (CHANNEL_DRY_LEVEL.equals(channelId)) {
+            client.sendCommand(deviceId, String.format(CMD_DRY_LEVEL_FMT, command.toString()));
+
+        } else if (CHANNEL_DRYING_TIME.equals(channelId)) {
+            client.sendCommand(deviceId, String.format(CMD_DRY_TIME_FMT, command.toString()));
 
         } else {
             logger.debug("No command handler for channel {}", channelId);
@@ -287,6 +296,63 @@ public class SmartThingsCloudWasherHandler extends BaseThingHandler {
                 } catch (Exception e) {
                     logger.debug("Could not parse operationTime: {}", opTimeElem);
                 }
+            }
+            // Combo washer/dryer extras (issue #6). Absent or null on a plain washer; only updated when present.
+            String phase = strVal(wos, "washerJobPhase");
+            if (phase != null) {
+                updateState(CHANNEL_JOB_PHASE, new StringType(phase));
+            }
+            updateNumberIfPresent(wos, "washingProgress", CHANNEL_WASHING_PROGRESS);
+            updateNumberIfPresent(wos, "dryingProgress", CHANNEL_DRYING_PROGRESS);
+            JsonElement phases = attrValue(wos, "scheduledPhases");
+            if (phases == null || !phases.isJsonArray()) {
+                phases = attrValue(wos, "scheduledJobs");
+            }
+            if (phases != null && phases.isJsonArray()) {
+                StringBuilder sb = new StringBuilder();
+                for (JsonElement p : phases.getAsJsonArray()) {
+                    if (!p.isJsonObject()) {
+                        continue;
+                    }
+                    JsonObject po = p.getAsJsonObject();
+                    String name = po.has("phaseName") ? po.get("phaseName").getAsString()
+                            : po.has("jobName") ? po.get("jobName").getAsString() : "?";
+                    if (sb.length() > 0) {
+                        sb.append(", ");
+                    }
+                    sb.append(name);
+                    if (po.has("timeInMin") && !po.get("timeInMin").isJsonNull()) {
+                        sb.append(' ').append(po.get("timeInMin").getAsLong()).append('m');
+                    }
+                }
+                updateState(CHANNEL_SCHEDULED_PHASES, new StringType(sb.toString()));
+            }
+        }
+
+        // ── combo washer/dryer: cycle type and drying settings (issue #6) ─────
+        // On an all-in-one machine samsungce.washerCycle carries cycleType
+        // (allInOne / washingOnly / dryingOnly) and the dryer capabilities sit on
+        // the same component. custom.dryerDryLevel holds either a level word
+        // (none, cupboard) or the drying time in minutes as a string.
+        JsonObject cycleCap = getCapability(root, "samsungce.washerCycle");
+        if (cycleCap != null) {
+            String cycleType = strVal(cycleCap, "cycleType");
+            if (cycleType != null) {
+                updateState(CHANNEL_CYCLE_TYPE, new StringType(cycleType));
+            }
+        }
+        JsonObject dryLevel = getCapability(root, "custom.dryerDryLevel");
+        if (dryLevel != null) {
+            String val = strVal(dryLevel, "dryerDryLevel");
+            if (val != null) {
+                updateState(CHANNEL_DRY_LEVEL, new StringType(val));
+            }
+        }
+        JsonObject dryTime = getCapability(root, "samsungce.dryerDryingTime");
+        if (dryTime != null) {
+            String val = strVal(dryTime, "dryingTime");
+            if (val != null) {
+                updateState(CHANNEL_DRYING_TIME, new StringType(val));
             }
         }
 
@@ -510,6 +576,14 @@ public class SmartThingsCloudWasherHandler extends BaseThingHandler {
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
+
+    /** Updates a Number channel from an attribute when it is present and numeric; leaves it alone otherwise. */
+    private void updateNumberIfPresent(JsonObject capability, String attribute, String channel) {
+        JsonElement el = attrValue(capability, attribute);
+        if (el != null && el.isJsonPrimitive() && el.getAsJsonPrimitive().isNumber()) {
+            updateState(channel, new DecimalType(el.getAsDouble()));
+        }
+    }
 
     private @Nullable JsonObject getCapability(JsonObject root, String capabilityId) {
         JsonElement e = root.get(capabilityId);

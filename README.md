@@ -338,6 +338,22 @@ Add a new thing of type **SmartThings Cloud Account** (bridge), then add child t
 > Write commands must target the standard `washerOperatingState` capability — not `samsungce.washerOperatingState`.
 > This is a quirk of the Samsung SmartThings API.
 
+### Combo washer/dryer channels
+
+An all-in-one washer/dryer is one SmartThings device with the dryer capabilities on the same `main`
+component, so it is configured as **one `washer` thing**, and these channels fill in by themselves.
+On a plain washer they stay undefined. Mapped from a status dump of a combo machine (issue #6).
+
+| Channel ID        | Type   | R/W | Source capability | Description |
+|-------------------|--------|-----|-------------------|-------------|
+| `cycleType`       | String | R   | `samsungce.washerCycle.cycleType` | allInOne, washingOnly, dryingOnly |
+| `jobPhase`        | String | R   | `samsungce.washerOperatingState.washerJobPhase` | Samsung's finer phase word |
+| `scheduledPhases` | String | R   | `samsungce.washerOperatingState.scheduledPhases` | "washing 45m, drying 115m" |
+| `washingProgress` | Number | R   | `samsungce.washerOperatingState.washingProgress` | percent, while washing |
+| `dryingProgress`  | Number | R   | `samsungce.washerOperatingState.dryingProgress` | percent, while drying |
+| `dryLevel`        | String | R/W | `custom.dryerDryLevel` / `setDryerDryLevel` | none, cupboard, or drying minutes: 30, 60, 90, 120, 180, 240 |
+| `dryingTime`      | String | R/W | `samsungce.dryerDryingTime` / `setDryerDryingTime` | only on machines that report it (null on the tested combo) |
+
 ---
 
 ## Dryer Channels

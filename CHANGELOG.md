@@ -5,6 +5,19 @@ All notable changes to the SmartThings Cloud binding are documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- `dryer` thing type (Samsung tumble dryers; issue #1).
+- Combo washer/dryer support on the `washer` thing: `cycleType`, `jobPhase`,
+  `scheduledPhases`, `washingProgress`, `dryingProgress`, `dryLevel` and
+  `dryingTime`, populated when the machine has the dryer capabilities (issue #6).
+
+### Fixed
+- Main UI listed the binding with "No thing types can be added": the add-on
+  descriptor id was `binding-smartthingscloud` instead of `smartthingscloud`
+  (issue #1).
+
 ## [1.6.0] - 2026-08-08
 
 ### Added
