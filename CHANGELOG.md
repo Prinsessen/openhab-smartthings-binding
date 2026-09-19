@@ -5,6 +5,14 @@ All notable changes to the SmartThings Cloud binding are documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+- Washer `completionTime` crept forward by one polling interval on every poll
+  (derived as now + remaining minutes each time); it is now re-derived only when
+  the remaining minutes change, so it no longer floods the event log and
+  persistence.
+
 ## [1.6.0] - 2026-08-08
 
 ### Added

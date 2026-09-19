@@ -93,6 +93,8 @@ public class SmartThingsCloudWasherHandler extends BaseThingHandler {
     private final Gson gson = new GsonBuilder().create();
 
     private @Nullable ScheduledFuture<?> pollFuture;
+    /** Last remaining minutes used for the derived completion time, so it is only re-derived when it changes. */
+    private long lastRemainMin = -1;
 
     public SmartThingsCloudWasherHandler(Thing thing) {
         super(thing);
@@ -266,10 +268,15 @@ public class SmartThingsCloudWasherHandler extends BaseThingHandler {
                 try {
                     long remainMin = remainElem.getAsLong();
                     updateState(CHANNEL_REMAINING, new DecimalType(Math.max(0, remainMin)));
-                    if (remainMin > 0) {
+                    // completionTime is derived as now + remaining. Samsung reports remaining in
+                    // whole minutes, so re-deriving on every 30 s poll made the timestamp creep
+                    // forward by 30 s each time and every poll became a state change. Derive it
+                    // only when the remaining minutes actually change.
+                    if (remainMin > 0 && remainMin != lastRemainMin) {
                         ZonedDateTime completionTime = ZonedDateTime.now().plusMinutes(remainMin);
                         updateState(CHANNEL_COMPLETION_TIME, new DateTimeType(completionTime));
                     }
+                    lastRemainMin = remainMin;
                 } catch (Exception e) {
                     logger.debug("Could not parse remainingTime: {}", remainElem);
                 }
