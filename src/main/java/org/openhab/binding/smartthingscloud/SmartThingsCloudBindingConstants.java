@@ -30,6 +30,7 @@ public class SmartThingsCloudBindingConstants {
     // ── Thing Types ───────────────────────────────────────────────────────────
     public static final ThingTypeUID THING_TYPE_ACCOUNT = new ThingTypeUID(BINDING_ID, "account");
     public static final ThingTypeUID THING_TYPE_WASHER = new ThingTypeUID(BINDING_ID, "washer");
+    public static final ThingTypeUID THING_TYPE_DISHWASHER = new ThingTypeUID(BINDING_ID, "dishwasher");
     public static final ThingTypeUID THING_TYPE_TELEVISION = new ThingTypeUID(BINDING_ID, "television");
     public static final ThingTypeUID THING_TYPE_PRESENCE = new ThingTypeUID(BINDING_ID, "presence");
     public static final ThingTypeUID THING_TYPE_LIGHT_SENSOR = new ThingTypeUID(BINDING_ID, "lightSensor");
@@ -38,7 +39,7 @@ public class SmartThingsCloudBindingConstants {
 
     public static final Set<ThingTypeUID> SUPPORTED_THING_TYPES = Set.of(THING_TYPE_ACCOUNT, THING_TYPE_WASHER,
             THING_TYPE_TELEVISION, THING_TYPE_PRESENCE, THING_TYPE_LIGHT_SENSOR, THING_TYPE_SCENE,
-            THING_TYPE_AIR_CONDITIONER);
+            THING_TYPE_AIR_CONDITIONER, THING_TYPE_DISHWASHER);
 
     // ── SmartThings API ───────────────────────────────────────────────────────
     /** Default public client_id from the open-source SmartThings CLI. */
@@ -80,6 +81,20 @@ public class SmartThingsCloudBindingConstants {
     public static final String CHANNEL_REMAINING_TIME_STR = "remainingTimeStr";
     public static final String CHANNEL_OPERATION_TIME = "operationTime";
     public static final String CHANNEL_UPDATE_AVAILABLE = "updateAvailable";
+
+    // Dishwasher-specific channels
+    public static final String CHANNEL_WASHING_COURSE = "washingCourse";
+    public static final String CHANNEL_SELECTED_ZONE = "selectedZone";
+    public static final String CHANNEL_SPEED_BOOSTER = "speedBooster";
+    public static final String CHANNEL_DRY_PLUS = "dryPlus";
+    public static final String CHANNEL_STORM_WASH = "stormWash";
+    public static final String CHANNEL_HOT_AIR_DRY = "hotAirDry";
+    public static final String CHANNEL_HIGH_TEMP_WASH = "highTempWash";
+    public static final String CHANNEL_SANITIZING_WASH = "sanitizingWash";
+    public static final String CHANNEL_DELAY_START_TIME = "delayStartTime";
+    public static final String CHANNEL_TIME_LEFT_TO_START = "timeLeftToStart";
+    public static final String CHANNEL_SCHEDULED_JOBS = "scheduledJobs";
+    public static final String CHANNEL_OPERATING_PROGRESS = "operatingProgress";
 
     // ── Television Channels ────────────────────────────────────────────────────
     public static final String CHANNEL_TV_VOLUME = "tvVolume";

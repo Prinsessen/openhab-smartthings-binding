@@ -341,6 +341,70 @@
 		Television thing type
 		═══════════════════════════════════════════════════════════════════ -->
 
+	<thing-type id="dishwasher">
+		<supported-bridge-type-refs>
+			<bridge-type-ref id="account"/>
+		</supported-bridge-type-refs>
+
+		<label>SmartThings Dishwasher</label>
+		<description>A Samsung dishwasher connected via SmartThings Cloud. Provides cycle state, program and
+			options, remaining time, energy and water use, and remote control.</description>
+
+		<channels>
+			<!-- Operating state -->
+			<channel id="machineState" typeId="machine-state"/>
+			<channel id="jobState" typeId="dishwasher-job-state"/>
+			<channel id="operatingState" typeId="operating-state"/>
+			<channel id="operatingProgress" typeId="dishwasher-operating-progress"/>
+			<channel id="running" typeId="running"/>
+			<channel id="remaining" typeId="remaining"/>
+			<channel id="remainingTimeStr" typeId="remaining-time-str"/>
+			<channel id="completionTime" typeId="completion-time"/>
+			<channel id="progress" typeId="progress"/>
+			<channel id="scheduledJobs" typeId="scheduled-jobs"/>
+			<channel id="timeLeftToStart" typeId="time-left-to-start"/>
+			<channel id="delayStartTime" typeId="delay-start-time"/>
+
+			<!-- Power and remote -->
+			<channel id="power" typeId="power"/>
+			<channel id="remoteEnabled" typeId="remote-enabled"/>
+
+			<!-- Program and options -->
+			<channel id="washingCourse" typeId="washing-course"/>
+			<channel id="supportedCourses" typeId="supported-courses"/>
+			<channel id="selectedZone" typeId="selected-zone"/>
+			<channel id="speedBooster" typeId="dishwasher-option-speed-booster"/>
+			<channel id="dryPlus" typeId="dishwasher-option-dry-plus"/>
+			<channel id="stormWash" typeId="dishwasher-option-storm-wash"/>
+			<channel id="hotAirDry" typeId="dishwasher-option-hot-air-dry"/>
+			<channel id="highTempWash" typeId="dishwasher-option-high-temp-wash"/>
+			<channel id="sanitizingWash" typeId="dishwasher-option-sanitizing-wash"/>
+
+			<!-- Consumption -->
+			<channel id="watt" typeId="watt"/>
+			<channel id="kwh" typeId="kwh"/>
+			<channel id="waterLiters" typeId="water-liters"/>
+
+			<!-- Extended -->
+			<channel id="kidsLock" typeId="kids-lock"/>
+			<channel id="volume" typeId="volume"/>
+			<channel id="updateAvailable" typeId="update-available"/>
+		</channels>
+
+		<config-description>
+			<parameter name="deviceId" type="text" required="true">
+				<label>Device ID</label>
+				<description>SmartThings device UUID. Find it via GET https://api.smartthings.com/v1/devices
+					using your access token, or with the SmartThings CLI.</description>
+			</parameter>
+			<parameter name="pollingIntervalSeconds" type="integer" required="false" min="10" max="300">
+				<label>Polling Interval (seconds)</label>
+				<description>How often to poll SmartThings API for dishwasher status.</description>
+				<default>30</default>
+			</parameter>
+		</config-description>
+	</thing-type>
+
 	<thing-type id="television">
 		<supported-bridge-type-refs>
 			<bridge-type-ref id="account"/>
@@ -702,4 +766,120 @@
 		<description>Samsung-specific optional mode, e.g. windFree, sleep, speed (device-dependent)</description>
 		<state readOnly="false"/>
 	</channel-type>
+	<!-- ═══ Dishwasher channel types ═══ -->
+
+	<channel-type id="dishwasher-job-state">
+		<item-type>String</item-type>
+		<label>Job State</label>
+		<description>Current dishwasher phase: none, washing, rinsing, drying, finish (standard capability, with
+			the samsungce job state as fallback)</description>
+		<state readOnly="true"/>
+	</channel-type>
+
+	<channel-type id="dishwasher-operating-progress">
+		<item-type>String</item-type>
+		<label>Operating Progress</label>
+		<description>Samsung's coarse progress word (none, ...), from custom.dishwasherOperatingProgress</description>
+		<state readOnly="true"/>
+	</channel-type>
+
+	<channel-type id="scheduled-jobs">
+		<item-type>String</item-type>
+		<label>Planned Phases</label>
+		<description>The phases of the selected course with their planned minutes, e.g. "washing 121m, rinsing 28m,
+			drying 165m"</description>
+		<state readOnly="true"/>
+	</channel-type>
+
+	<channel-type id="time-left-to-start">
+		<item-type>Number</item-type>
+		<label>Time Left To Start</label>
+		<description>Minutes until a delayed start begins</description>
+		<state readOnly="true" pattern="%.0f min"/>
+	</channel-type>
+
+	<channel-type id="delay-start-time">
+		<item-type>String</item-type>
+		<label>Delay Start Time</label>
+		<description>Configured delay start, "HH:MM:SS"</description>
+		<state readOnly="true"/>
+	</channel-type>
+
+	<channel-type id="washing-course">
+		<item-type>String</item-type>
+		<label>Program</label>
+		<description>Selected washing course. Send one of the supported course names to change it (the machine
+			must allow remote control).</description>
+		<state readOnly="false">
+			<options>
+				<option value="auto">Auto</option>
+				<option value="eco">Eco</option>
+				<option value="intensive">Intensive</option>
+				<option value="delicate">Delicate</option>
+				<option value="express_0C">Express</option>
+				<option value="preWash">Pre-wash</option>
+				<option value="extraSilence">Extra silence</option>
+				<option value="machineCare">Machine care</option>
+				<option value="plastics">Plastics</option>
+				<option value="babycare">Babycare</option>
+				<option value="potsAndPans">Pots and pans</option>
+				<option value="drinkware">Drinkware</option>
+			</options>
+		</state>
+	</channel-type>
+
+	<channel-type id="selected-zone">
+		<item-type>String</item-type>
+		<label>Zone</label>
+		<description>Which racks are washed: all, or the lower rack only</description>
+		<state readOnly="false">
+			<options>
+				<option value="all">All</option>
+				<option value="lower">Lower rack</option>
+			</options>
+		</state>
+	</channel-type>
+
+	<channel-type id="dishwasher-option-speed-booster">
+		<item-type>Switch</item-type>
+		<label>Speed Booster</label>
+		<description>Shorter cycle. Read from samsungce.dishwasherWashingOptions; writing sends the matching set command
+			(unverified until a tester confirms). Stays undefined on models that do not offer it.</description>
+	</channel-type>
+
+	<channel-type id="dishwasher-option-dry-plus">
+		<item-type>Switch</item-type>
+		<label>Dry+</label>
+		<description>Extended drying. Read from samsungce.dishwasherWashingOptions; writing sends the matching set command
+			(unverified until a tester confirms). Stays undefined on models that do not offer it.</description>
+	</channel-type>
+
+	<channel-type id="dishwasher-option-storm-wash">
+		<item-type>Switch</item-type>
+		<label>Storm Wash</label>
+		<description>High-pressure zone wash. Read from samsungce.dishwasherWashingOptions; writing sends the matching set command
+			(unverified until a tester confirms). Stays undefined on models that do not offer it.</description>
+	</channel-type>
+
+	<channel-type id="dishwasher-option-hot-air-dry">
+		<item-type>Switch</item-type>
+		<label>Hot Air Dry</label>
+		<description>Heated drying. Read from samsungce.dishwasherWashingOptions; writing sends the matching set command
+			(unverified until a tester confirms). Stays undefined on models that do not offer it.</description>
+	</channel-type>
+
+	<channel-type id="dishwasher-option-high-temp-wash">
+		<item-type>Switch</item-type>
+		<label>High Temp Wash</label>
+		<description>Higher wash temperature. Read from samsungce.dishwasherWashingOptions; writing sends the matching set command
+			(unverified until a tester confirms). Stays undefined on models that do not offer it.</description>
+	</channel-type>
+
+	<channel-type id="dishwasher-option-sanitizing-wash">
+		<item-type>Switch</item-type>
+		<label>Sanitizing Wash</label>
+		<description>Sanitising rinse. Read from samsungce.dishwasherWashingOptions; writing sends the matching set command
+			(unverified until a tester confirms). Stays undefined on models that do not offer it.</description>
+	</channel-type>
+
 </thing:thing-descriptions>

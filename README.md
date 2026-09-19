@@ -16,8 +16,9 @@ Any Samsung account holder can authorize using the built-in client ID without re
 | `lightSensor`    | Samsung SmartThings illuminance / brightness sensor |
 | `scene`          | Samsung SmartThings scene — execute with a switch channel |
 | `airConditioner` | Samsung SmartThings airconditioner |
+| `dishwasher`     | Samsung dishwasher (beta — built from a DW8700B status dump, awaiting a tester) |
 
-> Additional device types (dryer, dishwasher, etc.) can be added by contributing channel mappings.
+> Additional device types (dryer, refrigerator, etc.) can be added by contributing channel mappings.
 
 ---
 
@@ -181,6 +182,10 @@ Bridge smartthingscloud:account:myaccount "Samsung SmartThings" {
         deviceId = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
         pollingIntervalSeconds = 60
     ]
+    Thing dishwasher mydishwasher "My Dishwasher" [
+        deviceId = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+        pollingIntervalSeconds = 30
+    ]
 }
 ```
 
@@ -251,6 +256,47 @@ Add a new thing of type **SmartThings Cloud Account** (bridge), then add child t
 |--------------------------|---------|----------|---------|-------------|
 | `deviceId`               | text    | **Yes**  | —       | SmartThings device UUID. |
 | `pollingIntervalSeconds` | integer | No       | `30`    | Poll interval in seconds. Min: 10, Max: 300. |
+
+---
+
+## Dishwasher Configuration Parameters
+
+| Parameter                | Type    | Required | Default | Description |
+|--------------------------|---------|----------|---------|-------------|
+| `deviceId`               | text    | **Yes**  | —       | SmartThings device UUID. See [Finding Your Device ID](#finding-your-device-id). |
+| `pollingIntervalSeconds` | integer | No       | `30`    | Poll interval in seconds. Min: 10, Max: 300. |
+
+## Dishwasher Channels
+
+Built from a verbatim `/status` dump of a Samsung DW8700B (issue #7), idle. Everything below is mapped by
+capability name; the run-time values (job state, remaining time, progress) and every *write* still need a
+tester with the machine running. Remote commands only work when the machine's remote control is enabled.
+
+| Channel ID          | Type     | R/W | Source capability | Description |
+|---------------------|----------|-----|-------------------|-------------|
+| `machineState`      | String   | R/W | `dishwasherOperatingState.machineState` / `setMachineState` | run, pause, stop |
+| `jobState`          | String   | R   | `dishwasherOperatingState.dishwasherJobState`, fallback `samsungce.dishwasherJobState` | none, washing, rinsing, drying, finish |
+| `operatingState`    | String   | R   | `samsungce.dishwasherOperation.operatingState` | ready, running, paused |
+| `operatingProgress` | String   | R   | `custom.dishwasherOperatingProgress` | Samsung's coarse progress word |
+| `running`           | Switch   | R   | derived | ON while a cycle runs |
+| `remaining`         | Number   | R   | `samsungce.dishwasherOperation.remainingTime` | minutes left |
+| `remainingTimeStr`  | String   | R   | `samsungce.dishwasherOperation.remainingTimeStr` | "HH:MM" |
+| `completionTime`    | DateTime | R   | `dishwasherOperatingState.completionTime` | expected finish |
+| `progress`          | Number   | R   | `samsungce.dishwasherOperation.progressPercentage` | 0–100 |
+| `scheduledJobs`     | String   | R   | `samsungce.dishwasherJobState.scheduledJobs` | "washing 121m, rinsing 28m, drying 165m" |
+| `timeLeftToStart`   | Number   | R   | `samsungce.dishwasherOperation.timeLeftToStart` | minutes until a delayed start |
+| `delayStartTime`    | String   | R   | `custom.dishwasherDelayStartTime` | "HH:MM:SS" |
+| `power`             | Switch   | R/W | `switch` | on/off |
+| `remoteEnabled`     | Switch   | R   | `remoteControlStatus.remoteControlEnabled` | remote control allowed on the machine |
+| `washingCourse`     | String   | R/W | `samsungce.dishwasherWashingCourse.washingCourse` / `setWashingCourse` | auto, eco, intensive, delicate, express_0C, preWash, extraSilence, machineCare, plastics, babycare, potsAndPans, drinkware |
+| `supportedCourses`  | String   | R   | `samsungce.dishwasherWashingCourse.supportedCourses` | comma-separated |
+| `selectedZone`      | String   | R/W | `samsungce.dishwasherWashingOptions.selectedZone` / `setSelectedZone` | all, lower |
+| `speedBooster`, `dryPlus`, `stormWash`, `hotAirDry`, `highTempWash`, `sanitizingWash` | Switch | R/W | `samsungce.dishwasherWashingOptions.*` / `set<Option>` | undefined on models that do not offer the option; writes unverified |
+| `watt`, `kwh`       | Number   | R   | `powerConsumptionReport.powerConsumption` | power (W), energy (kWh) |
+| `waterLiters`       | Number   | R   | `samsungce.waterConsumptionReport.waterConsumption.cumulativeAmount` | as reported by Samsung |
+| `kidsLock`          | Switch   | R   | `samsungce.kidsLock.lockState` | ON when locked |
+| `volume`            | Number   | R   | `samsungce.audioVolumeLevel.volumeLevel` | 0–1 on the DW8700B |
+| `updateAvailable`   | Switch   | R   | `samsungce.softwareUpdate.newVersionAvailable` | firmware update offered |
 
 ---
 

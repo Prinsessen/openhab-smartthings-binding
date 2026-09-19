@@ -5,6 +5,19 @@ All notable changes to the SmartThings Cloud binding are documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- `dishwasher` thing type (beta): cycle state, program and options, remaining time,
+  energy and water use, remote control. Mapped from a DW8700B status dump
+  (issue #7); run-time values and writes await a tester.
+
+### Fixed
+- Main UI listed the binding with "No thing types can be added": the add-on
+  descriptor id was `binding-smartthingscloud` instead of `smartthingscloud`,
+  so the UI never matched the thing types to the add-on (issue #1). Things could
+  only be created from `.things` files; now the UI works too.
+
 ## [1.6.0] - 2026-08-08
 
 ### Added
