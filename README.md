@@ -16,6 +16,7 @@ Any Samsung account holder can authorize using the built-in client ID without re
 | `lightSensor`    | Samsung SmartThings illuminance / brightness sensor |
 | `scene`          | Samsung SmartThings scene — execute with a switch channel |
 | `airConditioner` | Samsung SmartThings airconditioner |
+| `refrigerator`   | Samsung refrigerator (beta — built from three status dumps in issue #3, awaiting a tester; one channel group per compartment) |
 
 > Additional device types (dryer, dishwasher, etc.) can be added by contributing channel mappings.
 
@@ -181,6 +182,10 @@ Bridge smartthingscloud:account:myaccount "Samsung SmartThings" {
         deviceId = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
         pollingIntervalSeconds = 60
     ]
+    Thing refrigerator myfridge "Kitchen Fridge" [
+        deviceId = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+        pollingIntervalSeconds = 60
+    ]
 }
 ```
 
@@ -251,6 +256,15 @@ Add a new thing of type **SmartThings Cloud Account** (bridge), then add child t
 |--------------------------|---------|----------|---------|-------------|
 | `deviceId`               | text    | **Yes**  | —       | SmartThings device UUID. |
 | `pollingIntervalSeconds` | integer | No       | `30`    | Poll interval in seconds. Min: 10, Max: 300. |
+
+---
+
+## Refrigerator Configuration Parameters
+
+| Parameter                | Type    | Required | Default | Description |
+|--------------------------|---------|----------|---------|-------------|
+| `deviceId`               | text    | **Yes**  | —       | SmartThings device UUID. See [Finding Your Device ID](#finding-your-device-id). |
+| `pollingIntervalSeconds` | integer | No       | `60`    | Poll interval in seconds. Min: 10, Max: 300. A fridge changes slowly. |
 
 ---
 
@@ -406,6 +420,63 @@ Add a new thing of type **SmartThings Cloud Account** (bridge), then add child t
 | `fanOscillationMode`     | String                | `fanOscillationMode`                | Set fan swing/oscillation direction: fixed, vertical, horizontal, all, fixedCenter, fixedLeft, fixedRight |
 | `optionalMode`           | String                | `custom.airConditionerOptionalMode` | Set Samsung-specific optional mode, e.g. windFree, sleep, speed |
 
+
+---
+
+## Refrigerator Channels
+
+**Beta.** Built from three status dumps in [issue #3](https://github.com/Prinsessen/openhab-smartthings-binding/issues/3)
+(RB53DG706BB1EF, RB34C605CB1/EF and a Family Hub); the author owns no fridge, so the read side is proven
+against the dumps only and every write awaits a tester.
+
+A Samsung refrigerator is the binding's first **multi-component** device. It advertises a template of up
+to fifteen components (`main`, `cooler`, `freezer`, `cvroom`, `onedoor`, ice makers, pantries, scales ...)
+and says in `main.custom.disabledComponents` which of them this model does not have. The temperatures and
+setpoints live on the compartment components, not on `main` (where they are advertised but disabled and
+null). The handler therefore polls `/devices/{id}/status` (all components at once), reads `main` and then
+only the compartments that exist, and exposes them as **channel groups**: `main`, `cooler`, `freezer`,
+`cvroom`, `onedoor`. Groups for compartments the fridge does not have stay empty; `main#components` lists
+the ones it has.
+
+Channel ids are `<group>#<channel>`, e.g. `smartthingscloud:refrigerator:myaccount:myfridge:freezer#setpoint`.
+
+### `main` group
+
+| Channel ID              | Type                 | R/W | Source capability | Description |
+|-------------------------|----------------------|-----|-------------------|-------------|
+| `main#door`             | Contact              | R   | `contactSensor.contact` | `OPEN` while a door is open |
+| `main#powerCool`        | Switch               | R/W | `samsungce.powerCool.activated` (fallback `refrigeration.rapidCooling`); written as `refrigeration.setRapidCooling` | Power Cool |
+| `main#powerFreeze`      | Switch               | R/W | `samsungce.powerFreeze.activated` (fallback `refrigeration.rapidFreezing`); written as `refrigeration.setRapidFreezing` | Power Freeze |
+| `main#vacationMode`     | Switch               | R/W | `samsungce.fridgeVacationMode.vacationMode` / `setVacationMode` | Vacation mode |
+| `main#watt`             | Number:Power         | R   | `powerConsumptionReport.powerConsumption.power` | Current power draw |
+| `main#kwh`              | Number:Energy        | R   | `powerConsumptionReport.powerConsumption.energy` (Wh → kWh) | Accumulated energy |
+| `main#waterFilterUsage` | Number:Dimensionless | R   | `custom.waterFilter.waterFilterUsage` | Filter life used, % |
+| `main#waterFilterStatus`| String               | R   | `custom.waterFilter.waterFilterStatus` | `normal`, `replace`, ... |
+| `main#updateAvailable`  | Switch               | R   | `samsungce.softwareUpdate.newVersionAvailable` | Firmware update offered |
+| `main#components`       | String               | R   | derived from `main.custom.disabledComponents` | The compartments this fridge has, e.g. `cooler, freezer` |
+
+### Compartment groups (`cooler`, `freezer`, `cvroom`, `onedoor`)
+
+| Channel ID                  | Type               | R/W | Source capability | Description |
+|-----------------------------|--------------------|-----|-------------------|-------------|
+| `<group>#door`              | Contact            | R   | `contactSensor.contact` | This compartment's door |
+| `<group>#temperature`       | Number:Temperature | R   | `temperatureMeasurement.temperature` | Measured temperature; unit from the fridge (°C or °F) |
+| `<group>#setpoint`          | Number:Temperature | R/W | `thermostatCoolingSetpoint.coolingSetpoint` / `setCoolingSetpoint` | Target temperature. A command in the other unit is converted before it is sent |
+| `<group>#setpointMin`       | Number:Temperature | R   | `thermostatCoolingSetpoint.coolingSetpointRange.minimum`, else `custom.thermostatSetpointControl.minimumSetpoint` | Lowest accepted setpoint (e.g. cooler 1 °C, freezer -23 °C) |
+| `<group>#setpointMax`       | Number:Temperature | R   | `...maximum` / `...maximumSetpoint` | Highest accepted setpoint (e.g. cooler 7 °C, freezer -15 °C) |
+
+Not mapped, on purpose: the ice makers, pantries, scales, the camera (`samsungce.viewInside` lists a
+`fileId` with no documented download endpoint) and the Family Hub's speaker (not in the API).
+
+```java
+Contact            Fridge_Door          "Fridge door [%s]"        { channel="smartthingscloud:refrigerator:myaccount:myfridge:main#door" }
+Number:Temperature Fridge_Temperature   "Fridge [%.0f °C]"        { channel="smartthingscloud:refrigerator:myaccount:myfridge:cooler#temperature" }
+Number:Temperature Fridge_Setpoint      "Fridge setpoint [%.0f °C]" { channel="smartthingscloud:refrigerator:myaccount:myfridge:cooler#setpoint" }
+Number:Temperature Freezer_Temperature  "Freezer [%.0f °C]"       { channel="smartthingscloud:refrigerator:myaccount:myfridge:freezer#temperature" }
+Number:Temperature Freezer_Setpoint     "Freezer setpoint [%.0f °C]" { channel="smartthingscloud:refrigerator:myaccount:myfridge:freezer#setpoint" }
+Switch             Fridge_PowerFreeze   "Power Freeze"            { channel="smartthingscloud:refrigerator:myaccount:myfridge:main#powerFreeze" }
+Number:Power       Fridge_Power         "Fridge [%.0f W]"         { channel="smartthingscloud:refrigerator:myaccount:myfridge:main#watt" }
+```
 
 ---
 

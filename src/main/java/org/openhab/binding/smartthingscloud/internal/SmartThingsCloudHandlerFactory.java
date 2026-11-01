@@ -13,6 +13,7 @@ import org.openhab.binding.smartthingscloud.internal.handler.SmartThingsCloudAcc
 import org.openhab.binding.smartthingscloud.internal.handler.SmartThingsCloudAirConditionerHandler;
 import org.openhab.binding.smartthingscloud.internal.handler.SmartThingsCloudLightSensorHandler;
 import org.openhab.binding.smartthingscloud.internal.handler.SmartThingsCloudPresenceHandler;
+import org.openhab.binding.smartthingscloud.internal.handler.SmartThingsCloudRefrigeratorHandler;
 import org.openhab.binding.smartthingscloud.internal.handler.SmartThingsCloudSceneHandler;
 import org.openhab.binding.smartthingscloud.internal.handler.SmartThingsCloudTelevisionHandler;
 import org.openhab.binding.smartthingscloud.internal.handler.SmartThingsCloudWasherHandler;
@@ -76,6 +77,9 @@ public class SmartThingsCloudHandlerFactory extends BaseThingHandlerFactory {
         }
         if (THING_TYPE_AIR_CONDITIONER.equals(uid)) {
             return new SmartThingsCloudAirConditionerHandler(thing);
+        }
+        if (THING_TYPE_REFRIGERATOR.equals(uid)) {
+            return new SmartThingsCloudRefrigeratorHandler(thing);
         }
         return null;
     }

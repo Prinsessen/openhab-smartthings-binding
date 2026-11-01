@@ -121,6 +121,31 @@ public class SmartThingsCloudApiClient {
     }
 
     /**
+     * Fetches the status of every component of a device at once.
+     *
+     * <p>
+     * {@code GET /devices/{id}/status} answers {@code {"components": {"main": {...}, "cooler": {...}, ...}}}.
+     * A multi-component appliance (the first was the refrigerator, issue #3) keeps its useful values outside
+     * {@code main}, which {@link #getDeviceComponentStatus(String)} never sees.
+     *
+     * @param deviceId SmartThings device UUID
+     * @return raw JSON body as String, or null on error
+     */
+    public @Nullable String getDeviceStatus(String deviceId) {
+        if (!ensureValidToken()) {
+            logger.warn("Cannot fetch device status — token refresh failed");
+            return null;
+        }
+        String url = ST_API_BASE + "/devices/" + deviceId + "/status";
+        try {
+            return getJson(url);
+        } catch (Exception e) {
+            logger.warn("Failed to fetch full status for device {}: {}", deviceId, e.getMessage());
+            return null;
+        }
+    }
+
+    /**
      * Sends a command to a device capability attribute.
      *
      * <p>

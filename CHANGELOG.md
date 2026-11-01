@@ -5,6 +5,24 @@ All notable changes to the SmartThings Cloud binding are documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- `refrigerator` thing type (beta): the binding's first multi-component device.
+  Doors, temperature and setpoint (read/write, with the allowed range) per
+  compartment as channel groups (`cooler`, `freezer`, `cvroom`, `onedoor`),
+  Power Cool / Power Freeze, vacation mode, power and energy, water filter.
+  Reads `/devices/{id}/status` (every component) and skips the compartments
+  the fridge lists in `custom.disabledComponents` and the capabilities in
+  `custom.disabledCapabilities`. Built from three status dumps (issue #3);
+  writes await a tester. JUnit test replays the dumps' shape.
+
+### Fixed
+- Main UI listed the binding with "No thing types can be added": the add-on
+  descriptor id was `binding-smartthingscloud` instead of `smartthingscloud`,
+  so the UI never matched the thing types to the add-on (issue #1). Things could
+  only be created from `.things` files; now the UI works too.
+
 ## [1.6.0] - 2026-08-08
 
 ### Added

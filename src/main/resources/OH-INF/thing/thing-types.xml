@@ -120,6 +120,50 @@
 	</thing-type>
 
 	<!-- ═══════════════════════════════════════════════════════════════════════
+		Thing: Refrigerator (beta - issue #3; multi-component: main + compartments)
+		═══════════════════════════════════════════════════════════════════════ -->
+	<thing-type id="refrigerator">
+		<supported-bridge-type-refs>
+			<bridge-type-ref id="account"/>
+		</supported-bridge-type-refs>
+
+		<label>SmartThings Refrigerator</label>
+		<description>A Samsung refrigerator connected via SmartThings Cloud. Doors, temperatures and
+			setpoints per compartment (cooler, freezer, and the convertible zones a model has), Power Cool /
+			Power Freeze, vacation mode, energy and the water filter. Compartments the fridge reports as
+			disabled stay empty.</description>
+
+		<channel-groups>
+			<channel-group id="main" typeId="refrigerator-main"/>
+			<channel-group id="cooler" typeId="refrigerator-compartment">
+				<label>Fridge Compartment</label>
+			</channel-group>
+			<channel-group id="freezer" typeId="refrigerator-compartment">
+				<label>Freezer Compartment</label>
+			</channel-group>
+			<channel-group id="cvroom" typeId="refrigerator-compartment">
+				<label>Convertible Zone (cvroom)</label>
+			</channel-group>
+			<channel-group id="onedoor" typeId="refrigerator-compartment">
+				<label>Convertible Zone (onedoor)</label>
+			</channel-group>
+		</channel-groups>
+
+		<config-description>
+			<parameter name="deviceId" type="text" required="true">
+				<label>Device ID</label>
+				<description>SmartThings device UUID. Find it via GET https://api.smartthings.com/v1/devices
+					using your access token, or from the SmartThings app device details.</description>
+			</parameter>
+			<parameter name="pollingIntervalSeconds" type="integer" required="false" min="10" max="300">
+				<label>Polling Interval (seconds)</label>
+				<description>How often to poll the SmartThings API for the refrigerator's status.</description>
+				<default>60</default>
+			</parameter>
+		</config-description>
+	</thing-type>
+
+	<!-- ═══════════════════════════════════════════════════════════════════════
 		Channel Types
 		═══════════════════════════════════════════════════════════════════════ -->
 
@@ -702,4 +746,120 @@
 		<description>Samsung-specific optional mode, e.g. windFree, sleep, speed (device-dependent)</description>
 		<state readOnly="false"/>
 	</channel-type>
+
+	<!-- ═══════════════════════════════════════════════════════════════════════
+		Refrigerator channel groups and channel types
+		═══════════════════════════════════════════════════════════════════════ -->
+
+	<channel-group-type id="refrigerator-main">
+		<label>Refrigerator</label>
+		<description>The whole appliance: door, Power Cool / Power Freeze, vacation mode, energy, water filter.</description>
+		<channels>
+			<channel id="door" typeId="fridge-door"/>
+			<channel id="powerCool" typeId="power-cool"/>
+			<channel id="powerFreeze" typeId="power-freeze"/>
+			<channel id="vacationMode" typeId="vacation-mode"/>
+			<channel id="watt" typeId="watt"/>
+			<channel id="kwh" typeId="kwh"/>
+			<channel id="waterFilterUsage" typeId="water-filter-usage"/>
+			<channel id="waterFilterStatus" typeId="water-filter-status"/>
+			<channel id="updateAvailable" typeId="update-available"/>
+			<channel id="components" typeId="fridge-components"/>
+		</channels>
+	</channel-group-type>
+
+	<channel-group-type id="refrigerator-compartment">
+		<label>Compartment</label>
+		<description>One compartment: its door, temperature and setpoint with the allowed range.</description>
+		<channels>
+			<channel id="door" typeId="fridge-door"/>
+			<channel id="temperature" typeId="fridge-temperature"/>
+			<channel id="setpoint" typeId="fridge-setpoint"/>
+			<channel id="setpointMin" typeId="fridge-setpoint-min"/>
+			<channel id="setpointMax" typeId="fridge-setpoint-max"/>
+		</channels>
+	</channel-group-type>
+
+	<channel-type id="fridge-door">
+		<item-type>Contact</item-type>
+		<label>Door</label>
+		<description>OPEN while the door is open (contactSensor.contact)</description>
+		<category>Door</category>
+		<state readOnly="true"/>
+	</channel-type>
+
+	<channel-type id="fridge-temperature">
+		<item-type>Number:Temperature</item-type>
+		<label>Temperature</label>
+		<description>Measured temperature of the compartment (temperatureMeasurement.temperature)</description>
+		<category>Temperature</category>
+		<state readOnly="true" pattern="%.0f %unit%"/>
+	</channel-type>
+
+	<channel-type id="fridge-setpoint">
+		<item-type>Number:Temperature</item-type>
+		<label>Setpoint</label>
+		<description>Target temperature of the compartment (thermostatCoolingSetpoint.coolingSetpoint). Send a
+			temperature within setpointMin..setpointMax to change it.</description>
+		<category>Temperature</category>
+		<state readOnly="false" pattern="%.0f %unit%"/>
+	</channel-type>
+
+	<channel-type id="fridge-setpoint-min" advanced="true">
+		<item-type>Number:Temperature</item-type>
+		<label>Setpoint Minimum</label>
+		<description>Lowest setpoint the compartment accepts</description>
+		<state readOnly="true" pattern="%.0f %unit%"/>
+	</channel-type>
+
+	<channel-type id="fridge-setpoint-max" advanced="true">
+		<item-type>Number:Temperature</item-type>
+		<label>Setpoint Maximum</label>
+		<description>Highest setpoint the compartment accepts</description>
+		<state readOnly="true" pattern="%.0f %unit%"/>
+	</channel-type>
+
+	<channel-type id="power-cool">
+		<item-type>Switch</item-type>
+		<label>Power Cool</label>
+		<description>Rapid cooling of the fridge compartment (samsungce.powerCool, written as refrigeration.setRapidCooling)</description>
+		<state readOnly="false"/>
+	</channel-type>
+
+	<channel-type id="power-freeze">
+		<item-type>Switch</item-type>
+		<label>Power Freeze</label>
+		<description>Rapid freezing (samsungce.powerFreeze, written as refrigeration.setRapidFreezing)</description>
+		<state readOnly="false"/>
+	</channel-type>
+
+	<channel-type id="vacation-mode">
+		<item-type>Switch</item-type>
+		<label>Vacation Mode</label>
+		<description>Vacation mode on/off (samsungce.fridgeVacationMode)</description>
+		<state readOnly="false"/>
+	</channel-type>
+
+	<channel-type id="water-filter-usage">
+		<item-type>Number:Dimensionless</item-type>
+		<label>Water Filter Usage</label>
+		<description>How much of the water filter's life is used (custom.waterFilter.waterFilterUsage)</description>
+		<state readOnly="true" pattern="%.0f %%"/>
+	</channel-type>
+
+	<channel-type id="water-filter-status">
+		<item-type>String</item-type>
+		<label>Water Filter Status</label>
+		<description>normal, replace, ... (custom.waterFilter.waterFilterStatus)</description>
+		<state readOnly="true"/>
+	</channel-type>
+
+	<channel-type id="fridge-components" advanced="true">
+		<item-type>String</item-type>
+		<label>Compartments Present</label>
+		<description>The compartments this model has, read from main.custom.disabledComponents; the other
+			groups stay empty</description>
+		<state readOnly="true"/>
+	</channel-type>
+
 </thing:thing-descriptions>

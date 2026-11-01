@@ -35,10 +35,11 @@ public class SmartThingsCloudBindingConstants {
     public static final ThingTypeUID THING_TYPE_LIGHT_SENSOR = new ThingTypeUID(BINDING_ID, "lightSensor");
     public static final ThingTypeUID THING_TYPE_SCENE = new ThingTypeUID(BINDING_ID, "scene");
     public static final ThingTypeUID THING_TYPE_AIR_CONDITIONER = new ThingTypeUID(BINDING_ID, "airConditioner");
+    public static final ThingTypeUID THING_TYPE_REFRIGERATOR = new ThingTypeUID(BINDING_ID, "refrigerator");
 
     public static final Set<ThingTypeUID> SUPPORTED_THING_TYPES = Set.of(THING_TYPE_ACCOUNT, THING_TYPE_WASHER,
             THING_TYPE_TELEVISION, THING_TYPE_PRESENCE, THING_TYPE_LIGHT_SENSOR, THING_TYPE_SCENE,
-            THING_TYPE_AIR_CONDITIONER);
+            THING_TYPE_AIR_CONDITIONER, THING_TYPE_REFRIGERATOR);
 
     // ── SmartThings API ───────────────────────────────────────────────────────
     /** Default public client_id from the open-source SmartThings CLI. */
@@ -80,6 +81,25 @@ public class SmartThingsCloudBindingConstants {
     public static final String CHANNEL_REMAINING_TIME_STR = "remainingTimeStr";
     public static final String CHANNEL_OPERATION_TIME = "operationTime";
     public static final String CHANNEL_UPDATE_AVAILABLE = "updateAvailable";
+
+    // ── Refrigerator Channels (channel groups: main + one per compartment) ───
+    /** Compartment groups the thing type declares; a fridge reports which of them exist. */
+    public static final String GROUP_MAIN = "main";
+    public static final String GROUP_COOLER = "cooler";
+    public static final String GROUP_FREEZER = "freezer";
+    public static final String GROUP_CVROOM = "cvroom";
+    public static final String GROUP_ONEDOOR = "onedoor";
+    public static final String CHANNEL_DOOR = "door";
+    public static final String CHANNEL_FRIDGE_TEMPERATURE = "temperature";
+    public static final String CHANNEL_SETPOINT = "setpoint";
+    public static final String CHANNEL_SETPOINT_MIN = "setpointMin";
+    public static final String CHANNEL_SETPOINT_MAX = "setpointMax";
+    public static final String CHANNEL_POWER_COOL = "powerCool";
+    public static final String CHANNEL_POWER_FREEZE = "powerFreeze";
+    public static final String CHANNEL_VACATION_MODE = "vacationMode";
+    public static final String CHANNEL_WATER_FILTER_USAGE = "waterFilterUsage";
+    public static final String CHANNEL_WATER_FILTER_STATUS = "waterFilterStatus";
+    public static final String CHANNEL_COMPONENTS = "components";
 
     // ── Television Channels ────────────────────────────────────────────────────
     public static final String CHANNEL_TV_VOLUME = "tvVolume";
