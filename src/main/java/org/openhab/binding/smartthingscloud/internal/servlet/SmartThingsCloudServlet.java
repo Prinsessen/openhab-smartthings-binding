@@ -32,28 +32,25 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.stream.Collectors;
 
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.smartthingscloud.internal.dto.STTokenResponse;
 import org.openhab.binding.smartthingscloud.internal.handler.SmartThingsCloudAccountHandler;
 import org.openhab.core.thing.ThingStatus;
-import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
-import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ServiceScope;
-import org.osgi.service.http.HttpService;
-import org.osgi.service.http.NamespaceException;
+import org.osgi.service.servlet.whiteboard.HttpWhiteboardConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+
+import jakarta.servlet.Servlet;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 /**
  * OAuth2 PKCE authorization servlet for SmartThings Cloud.
@@ -72,16 +69,20 @@ import com.google.gson.GsonBuilder;
  * @author openHAB SmartThings Cloud Binding - Initial contribution
  */
 @NonNullByDefault
-@Component(service = SmartThingsCloudServlet.class, scope = ServiceScope.SINGLETON, immediate = true)
+@Component(service = { Servlet.class,
+        SmartThingsCloudServlet.class }, scope = ServiceScope.SINGLETON, immediate = true, property = {
+                HttpWhiteboardConstants.HTTP_WHITEBOARD_SERVLET_PATTERN + "=" + SmartThingsCloudServlet.SERVLET_PATH,
+                HttpWhiteboardConstants.HTTP_WHITEBOARD_SERVLET_PATTERN + "=" + SmartThingsCloudServlet.SERVLET_PATH
+                        + "/*",
+                HttpWhiteboardConstants.HTTP_WHITEBOARD_SERVLET_NAME + "=smartthingscloud-auth" })
 public class SmartThingsCloudServlet extends HttpServlet {
 
     private static final long serialVersionUID = 1L;
-    private static final String SERVLET_PATH = "/smartthingscloud";
+    static final String SERVLET_PATH = "/smartthingscloud";
     private static final int CALLBACK_PORT = 61973;
     private static final String REDIRECT_URI = "http://localhost:" + CALLBACK_PORT + "/finish";
 
     private final Logger logger = LoggerFactory.getLogger(SmartThingsCloudServlet.class);
-    private final HttpService httpService;
     private final Gson gson = new GsonBuilder().create();
 
     /** Registered bridge handlers — keyed by thing UID string. */
@@ -89,20 +90,13 @@ public class SmartThingsCloudServlet extends HttpServlet {
     /** Pending PKCE code verifiers — keyed by bridge UID, valid until callback completes. */
     private final Map<String, String> pendingCodeVerifiers = new ConcurrentHashMap<>();
 
-    @Activate
-    public SmartThingsCloudServlet(@Reference HttpService httpService) {
-        this.httpService = httpService;
-        try {
-            httpService.registerServlet(SERVLET_PATH, this, null, httpService.createDefaultHttpContext());
-            logger.debug("SmartThings Cloud servlet registered at {}", SERVLET_PATH);
-        } catch (ServletException | NamespaceException e) {
-            logger.warn("Could not register SmartThings Cloud servlet: {}", e.getMessage(), e);
-        }
-    }
+    // openHAB 5.3: published to the servlet whiteboard at SERVLET_PATH (the component's properties) - the
+    // HttpService of 5.2 and its registerServlet()/unregister() no longer exist.
 
     @Deactivate
     protected void dispose() {
-        httpService.unregister(SERVLET_PATH);
+        bridgeHandlers.clear();
+        pendingCodeVerifiers.clear();
     }
 
     // ── Handler registration ──────────────────────────────────────────────────
@@ -431,8 +425,7 @@ public class SmartThingsCloudServlet extends HttpServlet {
                         writeHttpResponse(out, 200,
                                 "<h1 style='color:green'>&#10003; Authorization Successful</h1>"
                                         + "<p>SmartThings account authorized. You can close this tab.</p>"
-                                        + "<p><a href='" + SERVLET_PATH
-                                        + "'>Back to openHAB SmartThings</a></p>");
+                                        + "<p><a href='" + SERVLET_PATH + "'>Back to openHAB SmartThings</a></p>");
                     } else {
                         writeHttpResponse(out, 500, "<h1>Bridge Not Found</h1><p>state=" + esc(state) + "</p>");
                     }
