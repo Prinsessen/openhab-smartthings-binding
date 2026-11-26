@@ -6,6 +6,15 @@ no SmartThings Hub, no developer registration, and no Personal Access Token requ
 Authorization uses the same **OAuth2 PKCE flow** as the official SmartThings CLI.
 Any Samsung account holder can authorize using the built-in client ID without registering a developer app.
 
+## Which version for which openHAB
+
+| openHAB | binding | branch |
+|---|---|---|
+| 5.3 and its snapshots/milestones | 2.0.x | `openhab-5.3` |
+| 5.0 - 5.2 | 1.6.x | `main` |
+
+openHAB 5.3 moved to Jetty 12 / Jakarta EE 10 and removed the HttpService the authorization page was registered with; a binding built for one does not start on the other.
+
 ## Supported Things
 
 | Thing type    | Description |

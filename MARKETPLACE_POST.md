@@ -3,7 +3,7 @@
 | uid | smartthingscloud |
 | type | binding |
 | author | Nanna Agesen |
-| version range | \[5.0.0;6.0.0) |
+| version range | \[5.0.0;5.3.0) |
 | download | [org.openhab.binding.smartthingscloud-1.6.0.jar](https://github.com/Prinsessen/openhab-smartthings-binding/releases/download/v1.6.0/org.openhab.binding.smartthingscloud-1.6.0.jar) |
 
 # Samsung SmartThings Cloud Binding
@@ -268,6 +268,7 @@ Still planned:
 ## Resources
 
 * **Download JAR:** [org.openhab.binding.smartthingscloud-1.6.0.jar](https://github.com/Prinsessen/openhab-smartthings-binding/releases/download/v1.6.0/org.openhab.binding.smartthingscloud-1.6.0.jar)
+* **For openHAB 5.3 (beta):** [org.openhab.binding.smartthingscloud-2.0.0-beta.1.jar](https://github.com/Prinsessen/openhab-smartthings-binding/releases/download/v2.0.0-beta.1/org.openhab.binding.smartthingscloud-2.0.0-beta.1.jar) - 1.6.0 does not start on 5.3 (Jetty 12 / Jakarta EE 10)
 * **Source Code:** [github.com/Prinsessen/openhab-smartthings-binding](https://github.com/Prinsessen/openhab-smartthings-binding)
 * **Full Documentation:** [README.md](https://github.com/Prinsessen/openhab-smartthings-binding/blob/main/README.md)
 * **Release:** [v1.6.0 — Air Conditioner Support](https://github.com/Prinsessen/openhab-smartthings-binding/releases/tag/v1.6.0)
